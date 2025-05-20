@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>برج شقق تحكم كامل</title>
+<style>
+  body { background:#111; color:#fff; font-family:sans-serif; padding:20px; }
+  h2 { margin-bottom: 10px; }
+  .controls {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  input[type="number"] {
+    width: 100px;
+    padding: 5px;
+    border-radius: 4px;
+    border: none;
+    font-size: 16px;
+  }
+  button {
+    background-color: #444;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #666;
+  }
+  .tower {
+    max-height: 70vh;
+    overflow-y: auto;
+    border: 1px solid #444;
+    padding: 10px;
+    width: 100%;
+    max-width: 700px;
+    margin-top: 10px;
+    box-sizing: border-box;
+  }
+  .floor {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .floor-label {
+    width: 60px;
+    text-align: right;
+    font-weight: bold;
+    flex-shrink: 0;
+    user-select:none;
+  }
+  .apartment {
+    width: 40px;
+    height: 40px;
+    background: green;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: pulse 2s infinite;
+    transition: background-color 0.4s ease;
+  }
+  .sold {
+    background: red !important;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  .highlight {
+    outline: 3px solid yellow;
+    animation: none !important;
+  }
+  @media (max-width: 600px) {
+    .apartment {
+      width: 30px;
+      height: 30px;
+      font-size: 12px;
+    }
+    .floor-label {
+      width: 45px;
+      font-size: 14px;
+    }
+  }
+</style>
+</head>
+<body>
+<h2>واجهة تحكم ألوان الشقق</h2>
+
+<div class="controls">
+  <input type="number" id="searchInput" placeholder="ابحث عن شقة (رقم)" min="1" />
+  <button id="searchBtn">بحث</button>
+  <button id="resetBtn">إعادة تعيين كل الشقق</button>
+</div>
+
+<div class="tower" id="tower"></div>
+
+<script>
+  const floors = 44;
+  const apartmentsPerFloor = 9;
+  const totalApartments = floors * apartmentsPerFloor;
+
+  const tower = document.getElementById("tower");
+  const searchInput = document.getElementById("searchInput");
+  const searchBtn = document.getElementById("searchBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  let apartmentsMap = new Map();
+
+  function createTower() {
+    let apartmentNumber = 1;
+    for(let f = 1; f <= floors; f++) {
+      const floor = document.createElement("div");
+      floor.className = "floor";
+
+      const label = document.createElement("div");
+      label.className = "floor-label";
+      label.textContent = "طابق " + f;
+      floor.appendChild(label);
+
+      for(let a = 0; a < apartmentsPerFloor; a++) {
+        const apt = document.createElement("div");
+        apt.className = "apartment";
+        apt.textContent = apartmentNumber;
+        apt.dataset.apartment = apartmentNumber;
+
+        apt.onclick = function() {
+          toggleApartment(apt);
+        };
+
+        floor.appendChild(apt);
+        apartmentsMap.set(apartmentNumber, apt);
+        apartmentNumber++;
+      }
+
+      tower.appendChild(floor);
+    }
+  }
+
+  function toggleApartment(apt) {
+    if(apt.classList.contains("sold")) {
+      apt.classList.remove("sold");
+      apt.style.backgroundColor = "green";
+    } else {
+      apt.classList.add("sold");
+      apt.style.backgroundColor = "red";
+    }
+  }
+
+  function resetAll() {
+    apartmentsMap.forEach(apt => {
+      apt.classList.remove("sold");
+      apt.style.backgroundColor = "green";
+      apt.classList.remove("highlight");
+    });
+  }
+
+  function searchApartment() {
+    const val = parseInt(searchInput.value);
+    if(isNaN(val) || val < 1 || val > totalApartments) {
+      alert("الرجاء إدخال رقم شقة صحيح بين 1 و " + totalApartments);
+      return;
+    }
+
+    apartmentsMap.forEach(apt => apt.classList.remove("highlight"));
+
+    const apt = apartmentsMap.get(val);
+    if(apt) {
+      apt.scrollIntoView({behavior: "smooth", block: "center"});
+      apt.classList.add("highlight");
+    }
+  }
+
+  createTower();
+
+  searchBtn.addEventListener("click", searchApartment);
+  resetBtn.addEventListener("click", resetAll);
+</script>
+</body>
+</html>
